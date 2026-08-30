@@ -7,6 +7,10 @@ import Transition from "@/sections/Transition/Transition"
 import Hero from "@/sections/Hero/Hero"
 import Memories from "@/sections/Memories/Memories"
 import SakuraParticles from "@/sections/Transition/SakuraParticles"
+import Letter from "@/sections/Letter/Letter"
+import Countdown from "@/sections/Countdown/Countdown"
+import Finale from "../Finale/Finale";
+import VoiceNote from "../VoiceNote/VoiceNote";
 
 type Scene = "intro" | "hero"
 
@@ -42,7 +46,11 @@ export default function BirthdayExperience() {
       {scene === "hero" && (
         <>
           <Hero />
-          <Memories/>
+          <Memories />
+          <Letter />
+          <VoiceNote/>
+          <Countdown />
+          <Finale/>
         </>
       )}
 

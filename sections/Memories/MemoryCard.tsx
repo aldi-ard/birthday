@@ -90,30 +90,52 @@ className={`
   />
 </div>
       {/* Text */}
-      <div
-        className="
-          mt-6
-          text-center
-        "
-      >
-        <h3 className="
-          text-4xl
-          text-pink-700
-        ">
-          {memory.title}
-        </h3>
+  <m.div
+  initial={{
+    opacity: 0,
+    y: 20,
+  }}
+  whileInView={{
+    opacity: 1,
+    y: 0,
+  }}
+  viewport={{
+    once: true,
+    amount: 0.3,
+  }}
+  transition={{
+    duration: 0.8,
+    delay: 0.25,
+    ease: "easeOut",
+  }}
+  className="
+    mt-6
+    text-center
+  "
+>
+<h3
+  className="
+    text-3xl
+    md:text-4xl
+    text-pink-700
+  "
+>
+  {memory.title}
+</h3>
 
-        <p className="
-          mx-auto
-          mt-3
-          max-w-lg
-          text-sm
-          leading-7
-          text-pink-900/70
-        ">
-          {memory.description}
-        </p>
-      </div>
+<p
+  className="
+    mx-auto
+    mt-3
+    max-w-lg
+    text-sm
+    leading-7
+    text-pink-900/70
+  "
+>
+  {memory.description}
+</p>
+      </m.div>
     </m.article>
   )
 }
