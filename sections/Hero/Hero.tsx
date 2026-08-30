@@ -1,7 +1,8 @@
 "use client"
 
 import HeroBackground from "./HeroBackground"
-import { motion as m, useScroll, useTransform} from "framer-motion"
+import HeroDecoration from "./HeroDecoration"
+import { motion as m, useScroll, useTransform } from "framer-motion"
 import { useRef } from "react"
 import {
   yellowtail,
@@ -9,51 +10,51 @@ import {
 } from "@/themes/sakura/font"
 
 function Hero() {
-    const heroRef = useRef<HTMLElement | null>(null)
+  const heroRef = useRef < HTMLElement | null > (null)
 
 
-    const { scrollYProgress } = useScroll({
-        target: heroRef,
-        offset: [
-            "start start",
-            "end start",
-        ],
-    })
-    const titleY = useTransform(
-            scrollYProgress,
-            [0, 0.6],
-            [0, -120]
-        )
-    const titleOpacity = useTransform(
-            scrollYProgress,
-            [0, 0.5],
-            [1, 0]
-        )
-    const subtitleY = useTransform(
-            scrollYProgress,
-            [0, 0.7],
-            [0, -60]
-        )
-    const subtitleOpacity = useTransform(
-            scrollYProgress,
-            [0, 0.6],
-            [1, 0]
-        )
-    const backgroundScale = useTransform(
-            scrollYProgress,
-            [0, 1],
-            [1, 1.08]
-        )
-    const scrollOpacity = useTransform(
-        scrollYProgress,
-        [0, 0.15],
-        [1, 0]
-    )
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: [
+      "start start",
+      "end start",
+    ],
+  })
+  const titleY = useTransform(
+    scrollYProgress,
+    [0, 0.6],
+    [0, -120]
+  )
+  const titleOpacity = useTransform(
+    scrollYProgress,
+    [0, 0.5],
+    [1, 0]
+  )
+  const subtitleY = useTransform(
+    scrollYProgress,
+    [0, 0.7],
+    [0, -60]
+  )
+  const subtitleOpacity = useTransform(
+    scrollYProgress,
+    [0, 0.6],
+    [1, 0]
+  )
+  const backgroundScale = useTransform(
+    scrollYProgress,
+    [0, 1],
+    [1, 1.08]
+  )
+  const scrollOpacity = useTransform(
+    scrollYProgress,
+    [0, 0.15],
+    [1, 0]
+  )
   return (
-    
+
     <section
-        ref={heroRef}
-        className="
+      ref={heroRef}
+      className="
             relative
             min-h-screen
             w-full
@@ -62,22 +63,32 @@ function Hero() {
             items-center
             justify-center
         "
-        >
-        <m.div
-            style={{
-            scale: backgroundScale,
-            }}
-            className="
+    >
+      <m.div
+        style={{
+          scale: backgroundScale,
+        }}
+        className="
             absolute
             inset-0
             -z-10
             "
-            >
+      >
         <HeroBackground />
-        </m.div>
-        <m.div>
-
-        <m.p
+      </m.div>
+      <HeroDecoration scrollYProgress={scrollYProgress} />
+      <m.div
+        className="
+    relative
+    z-20
+    flex
+    flex-col
+    items-center
+    text-center
+  "
+      >
+        {/* Happy Birthday */}
+        <m.div
           initial={{
             opacity: 0,
             y: 20,
@@ -90,19 +101,24 @@ function Hero() {
             duration: 1,
             delay: 0.3,
           }}
-          className="
-            text-2xl
-            text-pink-800
-          "
-          style={{
-            fontFamily:
-              yellowtail.style.fontFamily,
-          }}
         >
-          Happy Birthday
-        </m.p>
+          <p
+            className="
+        text-2xl
+        text-pink-800
+      "
+            style={{
+              fontFamily:
+                yellowtail.style.fontFamily,
+            }}
+          >
+            Happy Birthday
+          </p>
+        </m.div>
 
-        <m.h1
+
+        {/* Name */}
+        <m.div
           initial={{
             opacity: 0,
             scale: 0.9,
@@ -111,49 +127,64 @@ function Hero() {
             opacity: 1,
             scale: 1,
           }}
-          className="
-            mt-2
-            text-8xl
-            text-pink-700
-          "
-          style={{
-            fontFamily:
+          transition={{
+            duration: 1.2,
+            delay: 0.5,
+            ease: [0.22, 1, 0.36, 1],
+          }}
+        >
+          <m.h1
+            style={{
+              fontFamily:
                 tangerine.style.fontFamily,
 
-            y: titleY,
-            opacity: titleOpacity,
+              y: titleY,
+              opacity: titleOpacity,
             }}
-        >
-          Dea Chintya
-        </m.h1>
+            className="
+        mt-2
+        text-6xl
+        md:text-8xl
+        text-pink-700
+      "
+          >
+            Dea Chintya
+          </m.h1>
+        </m.div>
 
-        <m.p
+
+        {/* Subtitle */}
+        <m.div
           initial={{
             opacity: 0,
+            y: 20,
           }}
           animate={{
             opacity: 1,
+            y: 0,
           }}
           transition={{
             duration: 1,
             delay: 1.2,
           }}
-          className="
-            mt-6
-            text-sm
-            tracking-[0.3em]
-            uppercase
-            text-pink-500
-          "
-            style={{
-            y: subtitleY,
-            opacity: subtitleOpacity,
-          }}
         >
-          A little story made for you
-        </m.p>
+          <m.p
+            className="
+        mt-6
+        text-sm
+        tracking-[0.3em]
+        uppercase
+        text-pink-500
+      "
+            style={{
+              y: subtitleY,
+              opacity: subtitleOpacity,
+            }}
+          >
+            A little story made for you
+          </m.p>
+        </m.div>
       </m.div>
-
       <m.div
         initial={{
           opacity: 0,
@@ -165,39 +196,41 @@ function Hero() {
           duration: 1,
           delay: 2,
         }}
-        className="
-          absolute
-          bottom-10
-          left-1/2
-          -translate-x-1/2
-          z-20
-          flex
-          flex-col
-          items-center
-          gap-2
-          text-pink-500
-        "
-        style={{
-            opacity: scrollOpacity,
-  }}
-
       >
-        <span className="text-xs tracking-widest uppercase">
-          Scroll
-        </span>
-
         <m.div
-          animate={{
-            y: [0, 8, 0],
+          style={{
+            opacity: scrollOpacity,
           }}
-          transition={{
-            duration: 1.5,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="text-xl"
+          className="
+        absolute
+        bottom-10
+        left-1/2
+        -translate-x-1/2
+        z-20
+        flex
+        flex-col
+        items-center
+        gap-2
+        text-pink-500
+        "
         >
-          ↓
+          <span className="text-xs tracking-widest uppercase">
+            Scroll
+          </span>
+
+          <m.div
+            animate={{
+              y: [0, 8, 0],
+            }}
+            transition={{
+              duration: 1.5,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+            className="text-xl"
+          >
+            ↓
+          </m.div>
         </m.div>
       </m.div>
     </section>

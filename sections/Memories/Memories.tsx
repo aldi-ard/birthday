@@ -7,20 +7,23 @@ import {
   tangerine,
 } from "@/themes/sakura/font"
 
+import MemoryCard from "./MemoryCard"
+import { memories } from "./memories.data"
+
 function Memories() {
   return (
     <section
       className="
         relative
-        min-h-screen
         w-full
         overflow-hidden
-        flex
-        items-center
-        justify-center
         px-6
+        py-32
       "
     >
+
+      {/* Intro */}
+
       <m.div
         initial={{
           opacity: 0,
@@ -39,14 +42,12 @@ function Memories() {
           ease: "easeOut",
         }}
         className="
-          relative
-          z-20
+          mx-auto
           max-w-3xl
           text-center
         "
       >
-
-        <m.p
+        <p
           className="
             text-2xl
             text-pink-800
@@ -57,9 +58,9 @@ function Memories() {
           }}
         >
           Our little memories
-        </m.p>
+        </p>
 
-        <m.h2
+        <h2
           className="
             mt-2
             text-6xl
@@ -72,7 +73,7 @@ function Memories() {
           }}
         >
           Moments to remember
-        </m.h2>
+        </h2>
 
         <p
           className="
@@ -88,8 +89,29 @@ function Memories() {
           Some are ordinary, some are unforgettable,
           but all of them are worth remembering.
         </p>
-
       </m.div>
+
+
+      {/* Memories */}
+
+<div
+  className="
+    mt-24
+    md:mt-32
+    space-y-28
+    md:space-y-40
+  "
+>
+{memories.map((memory, index) => (
+  <MemoryCard
+    key={memory.id}
+    memory={memory}
+    index={index}
+  />
+))}
+
+      </div>
+
     </section>
   )
 }

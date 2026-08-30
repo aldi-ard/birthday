@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+  "*.js": "javascriptreact",
+  "*.jsx": "javascriptreact",
+  "*.ts": "typescript",
+  "*.tsx": "typescriptreact"
+},
+"editor.detectIndentation": true
+
+}
