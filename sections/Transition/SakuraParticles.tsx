@@ -18,6 +18,7 @@ interface Petal {
   swaySpeed: number
   swayOffset: number
   opacity: number
+  depth: number
 }
 
 const randomBetween = (min: number, max: number) => {
@@ -26,10 +27,18 @@ const randomBetween = (min: number, max: number) => {
 
 function SakuraParticles({
   intensity = 1,
-}: SakuraParticlesProps) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  }: SakuraParticlesProps) {
+    const canvasRef = useRef<HTMLCanvasElement | null>(null)
+    const intensityRef = useRef(intensity)
+
 
   useEffect(() => {
+  intensityRef.current = intensity
+}, [intensity])
+
+  useEffect(() => {
+    const currentIntensity = intensity
+    let time = 0
     const canvas = canvasRef.current
 
     if (!canvas) return
@@ -88,55 +97,60 @@ function SakuraParticles({
     const petals: Petal[] = []
 
     for (let i = 0; i < count; i++) {
+        const depth = Math.random()
       petals.push({
         x:
-          Math.random() *
-          window.innerWidth,
+            Math.random() *
+            window.innerWidth,
 
         y:
-          Math.random() *
-          window.innerHeight,
+            Math.random() *
+            window.innerHeight,
+
+        depth,
 
         size: randomBetween(
-          size.min,
-          size.max
+            size.min,
+            size.max
         ),
 
-        speed: randomBetween(
-          speed.min,
-          speed.max
-        ),
+       speed:
+        randomBetween(
+            speed.min,
+            speed.max
+        ) *
+        (0.6 + depth * 0.4),
 
         rotation:
-          Math.random() *
-          Math.PI *
-          2,
+            Math.random() *
+            Math.PI *
+            2,
 
         rotationSpeed: randomBetween(
-          rotationSpeed.min,
-          rotationSpeed.max
+            rotationSpeed.min,
+            rotationSpeed.max
         ),
 
         sway: randomBetween(
-          sway.min,
-          sway.max
+            sway.min,
+            sway.max
         ),
 
         swaySpeed: randomBetween(
-          swaySpeed.min,
-          swaySpeed.max
+            swaySpeed.min,
+            swaySpeed.max
         ),
 
         swayOffset:
-          Math.random() *
-          Math.PI *
-          2,
+            Math.random() *
+            Math.PI *
+            2,
 
         opacity: randomBetween(
-          opacity.min,
-          opacity.max
+            opacity.min,
+            opacity.max
         ),
-      })
+        })
     }
 
     const drawPetal = (
@@ -154,7 +168,9 @@ function SakuraParticles({
       )
 
       context.globalAlpha =
-        petal.opacity * intensity
+        petal.opacity *
+        (0.5 + petal.depth * 0.5) *
+        currentIntensity
 
       context.beginPath()
 
@@ -190,6 +206,7 @@ function SakuraParticles({
     }
 
     const animate = () => {
+      time += 0.01
       context.clearRect(
         0,
         0,
@@ -200,18 +217,22 @@ function SakuraParticles({
       petals.forEach((petal) => {
         petal.y +=
           petal.speed *
-          intensity
+          currentIntensity
 
         petal.x +=
-          Math.sin(
-            petal.y *
-              petal.swaySpeed +
-              petal.swayOffset
-          ) *
-          0.4
+            Math.sin(
+                time *
+                petal.swaySpeed *
+                100 +
+                petal.swayOffset
+            ) *
+            petal.sway *
+            0.01 *
+            currentIntensity
 
-        petal.rotation +=
-          petal.rotationSpeed
+            petal.rotation +=
+            petal.rotationSpeed *
+            (0.6 + petal.depth * 0.4)
 
         if (
           petal.y >
@@ -247,7 +268,9 @@ function SakuraParticles({
         resizeCanvas
       )
     }
-  }, [intensity])
+  }, [])
+
+
 
   return (
     <canvas
