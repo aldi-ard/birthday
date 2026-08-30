@@ -5,6 +5,7 @@ import { useState } from "react"
 import IntroGate from "@/sections/IntroGate/IntroGate"
 import Transition from "@/sections/Transition/Transition"
 import Hero from "@/sections/Hero/Hero"
+import Memories from "@/sections/Memories/Memories"
 import SakuraParticles from "@/sections/Transition/SakuraParticles"
 
 type Scene = "intro" | "hero"
@@ -39,7 +40,10 @@ export default function BirthdayExperience() {
       )}
 
       {scene === "hero" && (
-        <Hero />
+        <>
+          <Hero />
+          <Memories/>
+        </>
       )}
 
      {isTransitioning && (
