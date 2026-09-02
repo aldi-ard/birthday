@@ -13,10 +13,213 @@ export default function Camera({
   onClose,
 }: CameraProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null)
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
+  const animationRef = useRef<number | null>(null)
+
+  const rawSizeRef = useRef({
+    width: 0,
+    height: 0,
+  })
+
+  const rotateRef = useRef(false)
 
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+
+  /*
+   * ==========================================================
+   * CHECK DEVICE ORIENTATION
+   * ==========================================================
+   */
+
+  const isPortraitDevice = () => {
+    if (typeof window === "undefined") {
+      return false
+    }
+
+    if (screen.orientation) {
+      return screen.orientation.type.startsWith("portrait")
+    }
+
+    return window.innerHeight > window.innerWidth
+  }
+
+  /*
+   * ==========================================================
+   * UPDATE ORIENTATION
+   * ==========================================================
+   */
+
+  const updateOrientation = () => {
+    const { width, height } = rawSizeRef.current
+
+    if (!width || !height) return
+
+    const streamIsLandscape = width > height
+    const deviceIsPortrait = isPortraitDevice()
+
+    /*
+     * Mobile portrait device + landscape stream
+     * = rotate 90°
+     *
+     * Desktop yang stream-nya sudah portrait
+     * = tidak di-rotate.
+     */
+
+    rotateRef.current =
+      deviceIsPortrait && streamIsLandscape
+
+    resizeCanvas()
+  }
+
+  /*
+   * ==========================================================
+   * RESIZE CANVAS
+   * ==========================================================
+   */
+
+  const resizeCanvas = () => {
+    const canvas = canvasRef.current
+
+    if (!canvas) return
+
+    const { width, height } = rawSizeRef.current
+
+    if (!width || !height) return
+
+    const rotate = rotateRef.current
+
+    const outputWidth = rotate ? height : width
+    const outputHeight = rotate ? width : height
+
+    canvas.width = outputWidth
+    canvas.height = outputHeight
+  }
+
+  /*
+   * ==========================================================
+   * DRAW CAMERA → CANVAS
+   *
+   * Canvas menjadi "normalized camera".
+   *
+   * Tidak crop.
+   * Tidak stretch.
+   * Hanya rotate jika memang diperlukan.
+   * ==========================================================
+   */
+
+  const drawCamera = () => {
+    const video = videoRef.current
+    const canvas = canvasRef.current
+
+    if (
+      !video ||
+      !canvas ||
+      !video.videoWidth ||
+      !video.videoHeight
+    ) {
+      animationRef.current = requestAnimationFrame(drawCamera)
+      return
+    }
+
+    const ctx = canvas.getContext("2d")
+
+    if (!ctx) return
+
+    const width = video.videoWidth
+    const height = video.videoHeight
+
+    const rotate = rotateRef.current
+
+    const outputWidth = rotate ? height : width
+    const outputHeight = rotate ? width : height
+
+    if (
+      canvas.width !== outputWidth ||
+      canvas.height !== outputHeight
+    ) {
+      canvas.width = outputWidth
+      canvas.height = outputHeight
+    }
+
+    ctx.clearRect(
+      0,
+      0,
+      outputWidth,
+      outputHeight
+    )
+
+    ctx.save()
+
+    if (rotate) {
+      /*
+       * ======================================================
+       * LANDSCAPE → PORTRAIT
+       *
+       * Rotasi 90° + mirror selfie.
+       *
+       * Matrix:
+       *
+       * x' = height - y
+       * y' = width - x
+       * ======================================================
+       */
+
+      ctx.setTransform(
+        0,
+        -1,
+        -1,
+        0,
+        height,
+        width
+      )
+
+      ctx.drawImage(
+        video,
+        0,
+        0,
+        width,
+        height
+      )
+    } else {
+      /*
+       * ======================================================
+       * ALREADY PORTRAIT
+       *
+       * Hanya mirror selfie.
+       * ======================================================
+       */
+
+      ctx.setTransform(
+        -1,
+        0,
+        0,
+        1,
+        width,
+        0
+      )
+
+      ctx.drawImage(
+        video,
+        0,
+        0,
+        width,
+        height
+      )
+    }
+
+    ctx.restore()
+
+    animationRef.current =
+      requestAnimationFrame(drawCamera)
+  }
+
+  /*
+   * ==========================================================
+   * START CAMERA
+   * ==========================================================
+   */
 
   useEffect(() => {
     let mounted = true
@@ -30,90 +233,121 @@ export default function Camera({
           throw new Error("Camera API is not supported")
         }
 
-        /*
-         * ==========================================================
-         * REQUEST PORTRAIT CAMERA
-         *
-         * Kita sengaja meminta:
-         *
-         *      1080 × 1920
-         *
-         * bukan:
-         *
-         *      1920 × 1080
-         *
-         * Tidak ada crop di sini.
-         * Kita ingin stream-nya sendiri sudah portrait.
-         * ==========================================================
-         */
+        const stream =
+          await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: {
+                ideal: "user",
+              },
 
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: {
-              ideal: "user",
+              width: {
+                ideal: 1080,
+              },
+
+              height: {
+                ideal: 1920,
+              },
+
+              aspectRatio: {
+                ideal: 9 / 16,
+              },
             },
 
-            width: {
-              ideal: 1080,
-              min: 720,
-            },
-
-            height: {
-              ideal: 1920,
-              min: 1280,
-            },
-
-            aspectRatio: {
-              ideal: 9 / 16,
-            },
-          },
-
-          audio: false,
-        })
+            audio: false,
+          })
 
         if (!mounted) {
-          stream.getTracks().forEach((track) => track.stop())
+          stream
+            .getTracks()
+            .forEach((track) => track.stop())
+
           return
         }
 
         streamRef.current = stream
 
-        const track = stream.getVideoTracks()[0]
+        const track =
+          stream.getVideoTracks()[0]
+
         const settings = track.getSettings()
 
-        console.log("Camera settings:", settings)
-
-        /*
-         * ==========================================================
-         * CEK RATIO STREAM YANG BENAR-BENAR DIBERIKAN BROWSER
-         * ==========================================================
-         */
+        console.log(
+          "Camera settings:",
+          settings
+        )
 
         if (
           settings.width &&
           settings.height
         ) {
-          const ratio =
-            settings.width / settings.height
+          rawSizeRef.current = {
+            width: settings.width,
+            height: settings.height,
+          }
 
           console.log(
             `Camera resolution: ${settings.width} × ${settings.height}`
           )
 
           console.log(
-            `Camera aspect ratio: ${ratio}`
+            `Camera aspect ratio: ${
+              settings.width / settings.height
+            }`
           )
         }
 
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream
+        const video = videoRef.current
 
-          await videoRef.current.play()
+        if (!video) return
+
+        video.srcObject = stream
+
+        /*
+         * Tunggu metadata video.
+         */
+
+        await new Promise<void>((resolve) => {
+          if (video.readyState >= 1) {
+            resolve()
+            return
+          }
+
+          video.onloadedmetadata = () => {
+            resolve()
+          }
+        })
+
+        await video.play()
+
+        /*
+         * Pakai ukuran aktual video,
+         * bukan hanya track settings.
+         */
+
+        rawSizeRef.current = {
+          width: video.videoWidth,
+          height: video.videoHeight,
         }
 
+        console.log(
+          `Actual video frame: ${video.videoWidth} × ${video.videoHeight}`
+        )
+
+        updateOrientation()
+
         setIsLoading(false)
+
+        /*
+         * Mulai render canvas.
+         */
+
+        animationRef.current =
+          requestAnimationFrame(drawCamera)
       } catch (err) {
-        console.error("Camera error:", err)
+        console.error(
+          "Camera error:",
+          err
+        )
 
         if (!mounted) return
 
@@ -140,7 +374,7 @@ export default function Camera({
 
           case "OverconstrainedError":
             setError(
-              "This camera does not support portrait mode."
+              "This camera does not support the requested configuration."
             )
             break
 
@@ -162,101 +396,86 @@ export default function Camera({
 
     startCamera()
 
+    /*
+     * Handle phone rotation.
+     */
+
+    const orientation =
+      screen.orientation
+
+    orientation?.addEventListener(
+      "change",
+      updateOrientation
+    )
+
+    window.addEventListener(
+      "resize",
+      updateOrientation
+    )
+
     return () => {
       mounted = false
 
-      streamRef.current?.getTracks().forEach((track) => {
-        track.stop()
-      })
+      orientation?.removeEventListener(
+        "change",
+        updateOrientation
+      )
+
+      window.removeEventListener(
+        "resize",
+        updateOrientation
+      )
+
+      if (animationRef.current) {
+        cancelAnimationFrame(
+          animationRef.current
+        )
+      }
+
+      streamRef.current
+        ?.getTracks()
+        .forEach((track) => track.stop())
 
       streamRef.current = null
     }
   }, [])
 
+  /*
+   * ==========================================================
+   * CAPTURE
+   *
+   * Yang disimpan adalah CANVAS yang sedang dilihat user.
+   * Jadi preview dan hasil foto 100% sama framing-nya.
+   * ==========================================================
+   */
+
   const capturePhoto = () => {
-    const video = videoRef.current
+    const canvas = canvasRef.current
 
-    if (!video) return
+    if (!canvas) return
 
-    if (
-      !video.videoWidth ||
-      !video.videoHeight
-    ) {
-      console.warn("Camera is not ready.")
+    if (!canvas.width || !canvas.height) {
+      console.warn("Camera canvas is not ready.")
       return
     }
 
-    const width = video.videoWidth
-    const height = video.videoHeight
-
     console.log(
-      `Captured camera frame: ${width} × ${height}`
+      `Captured normalized photo: ${canvas.width} × ${canvas.height}`
     )
-
-    /*
-     * ==========================================================
-     * IMPORTANT
-     *
-     * TIDAK ADA CROP.
-     *
-     * Kita mengambil SELURUH FRAME kamera.
-     *
-     * Jadi:
-     *
-     * Camera input
-     *       ↓
-     * Full frame
-     *       ↓
-     * Photo
-     *
-     * Kalau stream benar-benar 9:16:
-     *
-     * 1080 × 1920
-     *
-     * maka hasil juga:
-     *
-     * 1080 × 1920
-     * ==========================================================
-     */
-
-    const canvas = document.createElement("canvas")
-
-    canvas.width = width
-    canvas.height = height
-
-    const ctx = canvas.getContext("2d")
-
-    if (!ctx) return
-
-    /*
-     * Mirror selfie
-     *
-     * Preview kamera menggunakan scaleX(-1),
-     * maka hasil capture juga dibuat mirror.
-     */
-
-    ctx.save()
-
-    ctx.translate(width, 0)
-    ctx.scale(-1, 1)
-
-    ctx.drawImage(
-      video,
-      0,
-      0,
-      width,
-      height
-    )
-
-    ctx.restore()
 
     const image = canvas.toDataURL(
       "image/jpeg",
-      0.9
+      0.92
     )
 
     onCapture(image)
   }
+
+  /*
+   * ==========================================================
+   * ERROR
+   * ==========================================================
+   */
 
   if (error) {
     return (
@@ -319,45 +538,45 @@ export default function Camera({
         p-4
       "
     >
-      <div
-        className="
-          relative
-          w-full
-          max-w-md
-          overflow-hidden
-          rounded-3xl
-          bg-black
-          shadow-2xl
-        "
-      >
-        {/* =====================================================
-            PORTRAIT VIEWFINDER
-        ====================================================== */}
+      <div className="relative w-full max-w-md">
+
+        {/* ====================================================
+            NORMALIZED CAMERA VIEW
+        ===================================================== */}
 
         <div
           className="
             relative
-            aspect-[9/16]
             w-full
             overflow-hidden
+            rounded-3xl
+            bg-black
+            shadow-2xl
           "
         >
+          {/* Hidden source video */}
           <video
             ref={videoRef}
             autoPlay
             playsInline
             muted
-            className="
-              h-full
-              w-full
-              object-fill
-            "
-            style={{
-              transform: "scaleX(-1)",
-            }}
+            className="hidden"
           />
 
-          {/* Loading */}
+          {/* Actual camera preview */}
+          <canvas
+            ref={canvasRef}
+            className="
+              block
+              h-auto
+              w-full
+            "
+          />
+
+          {/* ==================================================
+              LOADING
+          =================================================== */}
+
           {isLoading && (
             <div
               className="
@@ -388,7 +607,10 @@ export default function Camera({
             </div>
           )}
 
-          {/* Sakura */}
+          {/* ==================================================
+              SAKURA
+          =================================================== */}
+
           <div className="pointer-events-none absolute inset-0">
             <div className="absolute left-5 top-6 text-3xl">
               🌸
@@ -407,7 +629,10 @@ export default function Camera({
             </div>
           </div>
 
-          {/* Top */}
+          {/* ==================================================
+              TOP
+          =================================================== */}
+
           <div
             className="
               absolute
@@ -429,7 +654,10 @@ export default function Camera({
             </p>
           </div>
 
-          {/* Capture */}
+          {/* ==================================================
+              CAPTURE BUTTON
+          =================================================== */}
+
           <div
             className="
               absolute
@@ -464,7 +692,10 @@ export default function Camera({
             </button>
           </div>
 
-          {/* Close */}
+          {/* ==================================================
+              CLOSE
+          =================================================== */}
+
           <button
             onClick={onClose}
             aria-label="Close camera"

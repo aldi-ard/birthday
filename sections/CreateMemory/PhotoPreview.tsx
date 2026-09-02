@@ -1,6 +1,7 @@
 "use client"
 
 import { motion as m } from "framer-motion"
+import { useEffect, useState } from "react"
 
 interface PhotoPreviewProps {
   image: string
@@ -15,11 +16,38 @@ export default function PhotoPreview({
   onShare,
   onClose,
 }: PhotoPreviewProps) {
+  const [ratio, setRatio] = useState("3 / 4")
+
+  useEffect(() => {
+    const img = new Image()
+
+    img.onload = () => {
+      if (!img.naturalWidth || !img.naturalHeight) {
+        return
+      }
+
+      setRatio(
+        `${img.naturalWidth} / ${img.naturalHeight}`
+      )
+    }
+
+    img.src = image
+  }, [image])
+
   return (
     <m.div
-      initial={{ opacity: 0, scale: 0.96 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.96 }}
+      initial={{
+        opacity: 0,
+        scale: 0.96,
+      }}
+      animate={{
+        opacity: 1,
+        scale: 1,
+      }}
+      exit={{
+        opacity: 0,
+        scale: 0.96,
+      }}
       className="
         fixed
         inset-0
@@ -35,23 +63,25 @@ export default function PhotoPreview({
       <div className="w-full max-w-md">
 
         {/* =====================================================
-            STORY FRAME
+            STORY / PHOTO FRAME
+
+            Aspect ratio mengikuti image asli.
         ====================================================== */}
+
         <div
           className="
             relative
-            aspect-[9/16]
             w-full
             overflow-hidden
             rounded-3xl
             bg-black
             shadow-2xl
           "
+          style={{
+            aspectRatio: ratio,
+          }}
         >
-
-          {/* ===================================================
-              PHOTO
-          ==================================================== */}
+          {/* Photo */}
           <img
             src={image}
             alt="Birthday selfie"
@@ -60,13 +90,10 @@ export default function PhotoPreview({
               inset-0
               h-full
               w-full
-              fill
             "
           />
 
-          {/* ===================================================
-              GRADIENT
-          ==================================================== */}
+          {/* Gradient */}
           <div
             className="
               pointer-events-none
@@ -79,9 +106,7 @@ export default function PhotoPreview({
             "
           />
 
-          {/* ===================================================
-              SAKURA
-          ==================================================== */}
+          {/* Sakura */}
           <div className="pointer-events-none absolute inset-0">
             <span className="absolute left-5 top-6 text-3xl">
               🌸
@@ -100,18 +125,30 @@ export default function PhotoPreview({
             </span>
           </div>
 
-          {/* ===================================================
-              TOP
-          ==================================================== */}
-          <div className="absolute left-0 right-0 top-8 text-center text-white">
-            <p className="text-xs uppercase tracking-[0.3em] text-white/80">
+          {/* Top */}
+          <div
+            className="
+              absolute
+              left-0
+              right-0
+              top-8
+              text-center
+              text-white
+            "
+          >
+            <p
+              className="
+                text-xs
+                uppercase
+                tracking-[0.3em]
+                text-white/80
+              "
+            >
               A little memory
             </p>
           </div>
 
-          {/* ===================================================
-              CLOSE
-          ==================================================== */}
+          {/* Close */}
           <button
             onClick={onClose}
             aria-label="Close photo preview"
@@ -142,9 +179,7 @@ export default function PhotoPreview({
             ×
           </button>
 
-          {/* ===================================================
-              BOTTOM STORY
-          ==================================================== */}
+          {/* Bottom */}
           <div
             className="
               absolute
@@ -179,6 +214,7 @@ export default function PhotoPreview({
         {/* =====================================================
             CONTROLS
         ====================================================== */}
+
         <div className="mt-5 flex gap-3">
           <button
             onClick={onRetake}
