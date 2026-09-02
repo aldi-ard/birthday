@@ -22,18 +22,15 @@ export default function Camera({
 
     const startCamera = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: "user",
-            width: {
-              ideal: 1080,
-            },
-            height: {
-              ideal: 1920,
-            },
-          },
-          audio: false,
-        })
+const stream = await navigator.mediaDevices.getUserMedia({
+  video: {
+    facingMode: "user",
+    aspectRatio: { ideal: 9 / 16 },
+    width: { ideal: 1080 },
+    height: { ideal: 1920 },
+  },
+  audio: false,
+})
 
         if (!mounted) {
           stream.getTracks().forEach((track) => track.stop())
@@ -71,8 +68,11 @@ export default function Camera({
 
  const canvas = document.createElement("canvas")
 
-canvas.width = video.videoWidth
-canvas.height = video.videoHeight
+const width = video.videoWidth
+const height = video.videoHeight
+
+canvas.width = width
+canvas.height = height
 
 const ctx = canvas.getContext("2d")
 
@@ -81,15 +81,15 @@ if (!ctx) return
 ctx.save()
 
 // Mirror selfie
-ctx.translate(canvas.width, 0)
+ctx.translate(width, 0)
 ctx.scale(-1, 1)
 
 ctx.drawImage(
   video,
   0,
   0,
-  canvas.width,
-  canvas.height
+  width,
+  height
 )
 
 ctx.restore()
