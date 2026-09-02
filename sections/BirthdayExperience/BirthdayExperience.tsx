@@ -10,8 +10,8 @@ import Letter from "@/sections/Letter/Letter"
 import Countdown from "@/sections/Countdown/Countdown"
 import Finale from "../Finale/Finale";
 import VoiceNote from "../VoiceNote/VoiceNote";
-import CreateAMemory from "../CreateMemory/CreateAMemory";
 import Timeline from "../Timeline/Timeline";
+import CreateAMemory from "../CreateMemory/CreateMemory";
 
 type Scene = "intro" | "hero"
 
