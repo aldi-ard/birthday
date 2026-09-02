@@ -35,8 +35,4 @@
     "typescript": "^5"
   }
 }
-{
-  "scripts": {
-    "build": "[my-framework] build --output public"
-  }
-}
+
