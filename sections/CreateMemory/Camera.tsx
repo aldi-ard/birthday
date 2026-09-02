@@ -69,13 +69,10 @@ export default function Camera({
 
     if (!video) return
 
-   const canvas = document.createElement("canvas")
+ const canvas = document.createElement("canvas")
 
-const targetWidth = 1080
-const targetHeight = 1920
-
-canvas.width = targetWidth
-canvas.height = targetHeight
+canvas.width = video.videoWidth
+canvas.height = video.videoHeight
 
 const ctx = canvas.getContext("2d")
 
@@ -84,37 +81,15 @@ if (!ctx) return
 ctx.save()
 
 // Mirror selfie
-ctx.translate(targetWidth, 0)
+ctx.translate(canvas.width, 0)
 ctx.scale(-1, 1)
-
-const videoRatio = video.videoWidth / video.videoHeight
-const targetRatio = targetWidth / targetHeight
-
-let sourceWidth = video.videoWidth
-let sourceHeight = video.videoHeight
-let sourceX = 0
-let sourceY = 0
-
-if (videoRatio > targetRatio) {
-  // Video terlalu lebar → crop kiri/kanan
-  sourceWidth = video.videoHeight * targetRatio
-  sourceX = (video.videoWidth - sourceWidth) / 2
-} else {
-  // Video terlalu tinggi → crop atas/bawah
-  sourceHeight = video.videoWidth / targetRatio
-  sourceY = (video.videoHeight - sourceHeight) / 2
-}
 
 ctx.drawImage(
   video,
-  sourceX,
-  sourceY,
-  sourceWidth,
-  sourceHeight,
   0,
   0,
-  targetWidth,
-  targetHeight
+  canvas.width,
+  canvas.height
 )
 
 ctx.restore()

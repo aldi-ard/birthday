@@ -29,7 +29,7 @@ export default function PhotoPreview({
           <img
             src={image}
             alt="Birthday selfie"
-            className="absolute inset-0 h-full w-full object-cover"
+            className="absolute inset-0 h-full w-full object-contain"
           />
 
           {/* Gradient overlay */}
