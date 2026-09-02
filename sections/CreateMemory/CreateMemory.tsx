@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { AnimatePresence } from "framer-motion"
-import PhotoBooth from "./Photobooth"
+import PhotoBooth from "./PhotoBooth"
 import PhotoResult from "./PhotoResult"
 
 type Stage = "idle" | "camera" | "result"
