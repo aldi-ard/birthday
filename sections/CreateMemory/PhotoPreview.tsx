@@ -60,7 +60,7 @@ export default function PhotoPreview({
               inset-0
               h-full
               w-full
-              object-cover
+              fill
             "
           />
 

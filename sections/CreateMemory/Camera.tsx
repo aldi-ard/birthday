@@ -26,50 +26,50 @@ export default function Camera({
         setIsLoading(true)
         setError(null)
 
-        // =========================================================
-        // 1. Coba kamera depan dengan constraint portrait
-        // =========================================================
-        let stream: MediaStream
-
-        try {
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-              facingMode: {
-                ideal: "user",
-              },
-              aspectRatio: {
-                ideal: 9 / 16,
-              },
-              width: {
-                ideal: 1080,
-              },
-              height: {
-                ideal: 1920,
-              },
-            },
-            audio: false,
-          })
-        } catch (portraitError) {
-          console.warn(
-            "Portrait camera constraint failed. Trying fallback...",
-            portraitError
-          )
-
-          // =======================================================
-          // 2. FALLBACK
-          // Jangan paksa aspect ratio.
-          // Browser/device bebas menentukan resolusi kamera.
-          // Nanti kita crop sendiri ketika capture.
-          // =======================================================
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-              facingMode: {
-                ideal: "user",
-              },
-            },
-            audio: false,
-          })
+        if (!navigator.mediaDevices?.getUserMedia) {
+          throw new Error("Camera API is not supported")
         }
+
+        /*
+         * ==========================================================
+         * REQUEST PORTRAIT CAMERA
+         *
+         * Kita sengaja meminta:
+         *
+         *      1080 × 1920
+         *
+         * bukan:
+         *
+         *      1920 × 1080
+         *
+         * Tidak ada crop di sini.
+         * Kita ingin stream-nya sendiri sudah portrait.
+         * ==========================================================
+         */
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: {
+              ideal: "user",
+            },
+
+            width: {
+              ideal: 1080,
+              min: 720,
+            },
+
+            height: {
+              ideal: 1920,
+              min: 1280,
+            },
+
+            aspectRatio: {
+              ideal: 9 / 16,
+            },
+          },
+
+          audio: false,
+        })
 
         if (!mounted) {
           stream.getTracks().forEach((track) => track.stop())
@@ -77,6 +77,33 @@ export default function Camera({
         }
 
         streamRef.current = stream
+
+        const track = stream.getVideoTracks()[0]
+        const settings = track.getSettings()
+
+        console.log("Camera settings:", settings)
+
+        /*
+         * ==========================================================
+         * CEK RATIO STREAM YANG BENAR-BENAR DIBERIKAN BROWSER
+         * ==========================================================
+         */
+
+        if (
+          settings.width &&
+          settings.height
+        ) {
+          const ratio =
+            settings.width / settings.height
+
+          console.log(
+            `Camera resolution: ${settings.width} × ${settings.height}`
+          )
+
+          console.log(
+            `Camera aspect ratio: ${ratio}`
+          )
+        }
 
         if (videoRef.current) {
           videoRef.current.srcObject = stream
@@ -95,7 +122,7 @@ export default function Camera({
         switch (cameraError.name) {
           case "NotAllowedError":
             setError(
-              "Camera permission was denied. Please allow camera access in your browser settings."
+              "Camera permission was denied. Please allow camera access and reload the page."
             )
             break
 
@@ -107,25 +134,25 @@ export default function Camera({
 
           case "NotReadableError":
             setError(
-              "The camera is already being used by another application."
-            )
-            break
-
-          case "SecurityError":
-            setError(
-              "Camera access is blocked by the browser security settings."
+              "The camera is currently being used by another application."
             )
             break
 
           case "OverconstrainedError":
             setError(
-              "This device does not support the requested camera configuration."
+              "This camera does not support portrait mode."
+            )
+            break
+
+          case "SecurityError":
+            setError(
+              "Camera access was blocked by the browser."
             )
             break
 
           default:
             setError(
-              "Unable to access the camera. Please check your browser permissions."
+              "Unable to access the camera."
             )
         }
 
@@ -151,75 +178,74 @@ export default function Camera({
 
     if (!video) return
 
-    if (!video.videoWidth || !video.videoHeight) {
-      console.warn("Camera video is not ready yet.")
+    if (
+      !video.videoWidth ||
+      !video.videoHeight
+    ) {
+      console.warn("Camera is not ready.")
       return
     }
 
-    const sourceWidth = video.videoWidth
-    const sourceHeight = video.videoHeight
+    const width = video.videoWidth
+    const height = video.videoHeight
 
-    // =========================================================
-    // Target ratio = Instagram Story / portrait
-    // =========================================================
-    const targetRatio = 9 / 16
-    const sourceRatio = sourceWidth / sourceHeight
+    console.log(
+      `Captured camera frame: ${width} × ${height}`
+    )
 
-    let cropX = 0
-    let cropY = 0
-    let cropWidth = sourceWidth
-    let cropHeight = sourceHeight
-
-    // =========================================================
-    // Sama dengan CSS object-cover pada container 9:16
-    // =========================================================
-    if (sourceRatio > targetRatio) {
-      // Source terlalu lebar
-      // Potong kiri + kanan
-      cropWidth = sourceHeight * targetRatio
-      cropX = (sourceWidth - cropWidth) / 2
-    } else {
-      // Source terlalu tinggi
-      // Potong atas + bawah
-      cropHeight = sourceWidth / targetRatio
-      cropY = (sourceHeight - cropHeight) / 2
-    }
-
-    // =========================================================
-    // Final output
-    // Instagram Story: 1080 × 1920
-    // =========================================================
-    const outputWidth = 1080
-    const outputHeight = 1920
+    /*
+     * ==========================================================
+     * IMPORTANT
+     *
+     * TIDAK ADA CROP.
+     *
+     * Kita mengambil SELURUH FRAME kamera.
+     *
+     * Jadi:
+     *
+     * Camera input
+     *       ↓
+     * Full frame
+     *       ↓
+     * Photo
+     *
+     * Kalau stream benar-benar 9:16:
+     *
+     * 1080 × 1920
+     *
+     * maka hasil juga:
+     *
+     * 1080 × 1920
+     * ==========================================================
+     */
 
     const canvas = document.createElement("canvas")
 
-    canvas.width = outputWidth
-    canvas.height = outputHeight
+    canvas.width = width
+    canvas.height = height
 
     const ctx = canvas.getContext("2d")
 
     if (!ctx) return
 
+    /*
+     * Mirror selfie
+     *
+     * Preview kamera menggunakan scaleX(-1),
+     * maka hasil capture juga dibuat mirror.
+     */
+
     ctx.save()
 
-    // =========================================================
-    // Mirror selfie
-    // Sama seperti preview kamera
-    // =========================================================
-    ctx.translate(outputWidth, 0)
+    ctx.translate(width, 0)
     ctx.scale(-1, 1)
 
     ctx.drawImage(
       video,
-      cropX,
-      cropY,
-      cropWidth,
-      cropHeight,
       0,
       0,
-      outputWidth,
-      outputHeight
+      width,
+      height
     )
 
     ctx.restore()
@@ -232,39 +258,42 @@ export default function Camera({
     onCapture(image)
   }
 
-  // =============================================================
-  // ERROR SCREEN
-  // =============================================================
   if (error) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6">
-        <div className="w-full max-w-sm rounded-3xl bg-white p-8 text-center shadow-2xl">
+      <div
+        className="
+          fixed
+          inset-0
+          z-50
+          flex
+          items-center
+          justify-center
+          bg-black/80
+          px-6
+        "
+      >
+        <div className="w-full max-w-sm text-center">
           <div className="mb-5 text-4xl">
             🌸
           </div>
 
-          <h2 className="font-serif text-2xl text-pink-950">
-            Camera unavailable
-          </h2>
-
-          <p className="mt-4 text-sm leading-6 text-pink-950/60">
+          <p className="text-sm leading-6 text-white/70">
             {error}
           </p>
 
           <button
             onClick={onClose}
             className="
-              mt-7
+              mt-6
               rounded-full
               border
-              border-pink-300
+              border-white/30
               px-6
               py-3
               text-sm
-              text-pink-800
+              text-white
               transition
-              hover:bg-pink-50
-              active:scale-95
+              hover:bg-white/10
             "
           >
             Go Back
@@ -302,9 +331,17 @@ export default function Camera({
         "
       >
         {/* =====================================================
-            CAMERA VIEWFINDER
+            PORTRAIT VIEWFINDER
         ====================================================== */}
-        <div className="relative aspect-[9/16] w-full overflow-hidden">
+
+        <div
+          className="
+            relative
+            aspect-[9/16]
+            w-full
+            overflow-hidden
+          "
+        >
           <video
             ref={videoRef}
             autoPlay
@@ -313,33 +350,45 @@ export default function Camera({
             className="
               h-full
               w-full
-              object-cover
+              object-fill
             "
             style={{
               transform: "scaleX(-1)",
             }}
           />
 
-          {/* ===================================================
-              LOADING
-          ==================================================== */}
+          {/* Loading */}
           {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black">
+            <div
+              className="
+                absolute
+                inset-0
+                flex
+                items-center
+                justify-center
+                bg-black
+              "
+            >
               <div className="text-center text-white">
                 <div className="mb-4 text-3xl">
                   🌸
                 </div>
 
-                <p className="text-xs uppercase tracking-[0.3em] text-white/60">
+                <p
+                  className="
+                    text-xs
+                    uppercase
+                    tracking-[0.3em]
+                    text-white/60
+                  "
+                >
                   Starting camera...
                 </p>
               </div>
             </div>
           )}
 
-          {/* ===================================================
-              SAKURA DECORATION
-          ==================================================== */}
+          {/* Sakura */}
           <div className="pointer-events-none absolute inset-0">
             <div className="absolute left-5 top-6 text-3xl">
               🌸
@@ -358,19 +407,39 @@ export default function Camera({
             </div>
           </div>
 
-          {/* ===================================================
-              TOP TEXT
-          ==================================================== */}
-          <div className="absolute left-0 right-0 top-6 text-center">
-            <p className="text-xs uppercase tracking-[0.3em] text-white/70">
+          {/* Top */}
+          <div
+            className="
+              absolute
+              left-0
+              right-0
+              top-6
+              text-center
+            "
+          >
+            <p
+              className="
+                text-xs
+                uppercase
+                tracking-[0.3em]
+                text-white/70
+              "
+            >
               Create a memory
             </p>
           </div>
 
-          {/* ===================================================
-              CAPTURE BUTTON
-          ==================================================== */}
-          <div className="absolute bottom-8 left-0 right-0 flex items-center justify-center">
+          {/* Capture */}
+          <div
+            className="
+              absolute
+              bottom-8
+              left-0
+              right-0
+              flex
+              justify-center
+            "
+          >
             <button
               onClick={capturePhoto}
               disabled={isLoading}
@@ -388,7 +457,6 @@ export default function Camera({
                 backdrop-blur-md
                 transition
                 active:scale-90
-                disabled:cursor-not-allowed
                 disabled:opacity-50
               "
             >
@@ -396,9 +464,7 @@ export default function Camera({
             </button>
           </div>
 
-          {/* ===================================================
-              CLOSE
-          ==================================================== */}
+          {/* Close */}
           <button
             onClick={onClose}
             aria-label="Close camera"
