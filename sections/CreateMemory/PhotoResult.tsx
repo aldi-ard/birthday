@@ -1,11 +1,10 @@
 "use client"
 
-import {
-  useEffect,
-  useState,
-} from "react"
+import { useEffect, useState } from "react"
+import { motion } from "framer-motion"
 
-import { motion as m } from "framer-motion"
+import { generatePhotobooth } from "./GeneratePhotobooth"
+import { generateStory } from "./GenerateStory"
 
 interface PhotoResultProps {
   photos: string[]
@@ -18,302 +17,162 @@ export default function PhotoResult({
   onRetake,
   onClose,
 }: PhotoResultProps) {
-  const [result, setResult] =
+  const [photobooth, setPhotobooth] =
     useState<string | null>(null)
 
+  const [story, setStory] =
+    useState<string | null>(null)
+
+  const [isGenerating, setIsGenerating] =
+    useState(true)
+
+  const [error, setError] =
+    useState<string | null>(null)
+
+  const [sharingType, setSharingType] =
+    useState<"photobooth" | "story" | null>(null)
+
   useEffect(() => {
-    if (photos.length !== 3) {
-      return
-    }
+    let cancelled = false
 
-    const createResult = async () => {
-      const images =
-        await Promise.all(
-          photos.map(
-            (src) =>
-              new Promise<HTMLImageElement>(
-                (resolve, reject) => {
-                  const img =
-                    new Image()
+    async function generateResults() {
+      try {
+        setIsGenerating(true)
+        setError(null)
 
-                  img.onload = () =>
-                    resolve(img)
+        const [
+          photoboothResult,
+          storyResult,
+        ] = await Promise.all([
+          generatePhotobooth(photos, {
+            name: "Dea Chintya",
+            date: "02 September 2026",
+          }),
+          generateStory(photos, {
+            name: "Dea Chintya",
+            date: "02 September 2026",
+          }),
+        ])
 
-                  img.onerror = reject
+        if (cancelled) return
 
-                  img.src = src
-                }
-              )
-          )
+        setPhotobooth(photoboothResult)
+        setStory(storyResult)
+      } catch (err) {
+        console.error(
+          "Failed to generate results:",
+          err,
         )
 
-      /*
-       * ========================================================
-       * FINAL PHOTO SIZE
-       *
-       * Each photo tetap menggunakan ratio aslinya.
-       *
-       * Kita gunakan width 1080.
-       * ========================================================
-       */
-
-      const outputWidth = 1080
-
-      const photoHeight =
-        Math.round(
-          outputWidth *
-            (images[0].naturalHeight /
-              images[0].naturalWidth)
-        )
-
-      const gap = 12
-
-      const footerHeight = 150
-
-      const outputHeight =
-        photoHeight * 3 +
-        gap * 2 +
-        footerHeight
-
-      const canvas =
-        document.createElement("canvas")
-
-      canvas.width =
-        outputWidth
-
-      canvas.height =
-        outputHeight
-
-      const ctx =
-        canvas.getContext("2d")
-
-      if (!ctx) return
-
-      /*
-       * ========================================================
-       * BACKGROUND
-       * ========================================================
-       */
-
-      ctx.fillStyle = "#fffafc"
-
-      ctx.fillRect(
-        0,
-        0,
-        outputWidth,
-        outputHeight
-      )
-
-      /*
-       * ========================================================
-       * DRAW 3 PHOTOS
-       * ========================================================
-       */
-
-      images.forEach(
-        (image, index) => {
-          const y =
-            index *
-              (photoHeight + gap)
-
-          /*
-           * Preserve original ratio.
-           *
-           * Tidak crop.
-           * Tidak stretch.
-           */
-
-          const imageRatio =
-            image.naturalWidth /
-            image.naturalHeight
-
-          const drawWidth =
-            outputWidth
-
-          const drawHeight =
-            drawWidth / imageRatio
-
-          const offsetY =
-            y +
-            (photoHeight -
-              drawHeight) /
-              2
-
-          ctx.drawImage(
-            image,
-            0,
-            offsetY,
-            drawWidth,
-            drawHeight
+        if (!cancelled) {
+          setError(
+            "Something went wrong while creating your memories.",
           )
         }
-      )
-
-      /*
-       * ========================================================
-       * FOOTER
-       * ========================================================
-       */
-
-      const footerY =
-        photoHeight * 3 +
-        gap * 2
-
-      ctx.fillStyle =
-        "#fffafc"
-
-      ctx.fillRect(
-        0,
-        footerY,
-        outputWidth,
-        footerHeight
-      )
-
-      ctx.fillStyle =
-        "#831843"
-
-      ctx.textAlign = "center"
-
-      ctx.font =
-        "italic 38px Georgia"
-
-      ctx.fillText(
-        "Three little moments.",
-        outputWidth / 2,
-        footerY + 58
-      )
-
-      ctx.font =
-        "20px Arial"
-
-      ctx.fillStyle =
-        "rgba(131,24,67,0.55)"
-
-      ctx.fillText(
-        "Dea Chintya ♡",
-        outputWidth / 2,
-        footerY + 98
-      )
-
-      const finalImage =
-        canvas.toDataURL(
-          "image/jpeg",
-          0.92
-        )
-
-      setResult(finalImage)
+      } finally {
+        if (!cancelled) {
+          setIsGenerating(false)
+        }
+      }
     }
 
-    createResult()
+    if (photos.length === 3) {
+      generateResults()
+    }
+
+    return () => {
+      cancelled = true
+    }
   }, [photos])
 
-  /*
-   * ==========================================================
-   * SHARE
-   * ==========================================================
-   */
+  const downloadImage = (
+    image: string,
+    filename: string,
+  ) => {
+    const link =
+      document.createElement("a")
 
-  const handleShare = async () => {
-    if (!result) return
+    link.href = image
+    link.download = filename
 
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+  }
+
+  const shareImage = async (
+    image: string,
+    filename: string,
+    title: string,
+  ) => {
     try {
-      const response =
-        await fetch(result)
+      setSharingType(
+        filename.includes("story")
+          ? "story"
+          : "photobooth",
+      )
 
-      const blob =
-        await response.blob()
+      const response = await fetch(image)
 
-      const file =
-        new File(
-          [blob],
-          "three-little-moments.jpg",
-          {
-            type: "image/jpeg",
-          }
-        )
+      const blob = await response.blob()
 
+      const file = new File(
+        [blob],
+        filename,
+        {
+          type: "image/jpeg",
+        },
+      )
+
+      /**
+       * Native file sharing.
+       */
       if (
-        navigator.share &&
-        navigator.canShare?.({
+        navigator.canShare &&
+        navigator.canShare({
           files: [file],
         })
       ) {
         await navigator.share({
           files: [file],
-          title:
-            "Three little moments",
+          title,
+          text: "A little memory from today ♡",
         })
 
         return
       }
 
-      /*
-       * Fallback:
-       * buka image.
+      /**
+       * Fallback.
        */
-
-      window.open(
-        result,
-        "_blank"
+      downloadImage(
+        image,
+        filename,
       )
-    } catch (error) {
+    } catch (err) {
+      if (
+        err instanceof DOMException &&
+        err.name === "AbortError"
+      ) {
+        return
+      }
+
       console.error(
         "Share failed:",
-        error
+        err,
       )
+
+      downloadImage(
+        image,
+        filename,
+      )
+    } finally {
+      setSharingType(null)
     }
   }
 
-  /*
-   * ==========================================================
-   * LOADING RESULT
-   * ==========================================================
-   */
-
-  if (!result) {
-    return (
-      <m.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="
-          mx-auto
-          flex
-          min-h-[60vh]
-          max-w-md
-          items-center
-          justify-center
-          text-center
-        "
-      >
-        <div>
-          <div className="mb-4 text-4xl">
-            🌸
-          </div>
-
-          <p
-            className="
-              font-serif
-              text-2xl
-              italic
-              text-pink-700
-            "
-          >
-            Creating your memory...
-          </p>
-        </div>
-      </m.div>
-    )
-  }
-
-  /*
-   * ==========================================================
-   * RESULT UI
-   * ==========================================================
-   */
-
   return (
-    <m.div
+    <motion.div
       initial={{
         opacity: 0,
         y: 30,
@@ -324,133 +183,496 @@ export default function PhotoResult({
       }}
       exit={{
         opacity: 0,
-        y: 30,
+        y: -20,
+      }}
+      transition={{
+        duration: 0.8,
+        ease: [0.22, 1, 0.36, 1],
       }}
       className="
         relative
         mx-auto
         w-full
-        max-w-md
+        max-w-5xl
       "
     >
       {/* Header */}
-      <div className="mb-6 text-center">
+      <div className="text-center">
         <p
           className="
+            text-[10px]
+            uppercase
+            tracking-[0.35em]
+            text-pink-900/40
+          "
+        >
+          Your memories are ready
+        </p>
+
+        <h2
+          className="
+            mt-4
             font-serif
-            text-3xl
-            italic
-            text-pink-700
+            text-4xl
+            font-medium
+            tracking-tight
+            text-pink-950
+            md:text-5xl
           "
         >
-          A memory to keep.
-        </p>
+          Three little moments
+        </h2>
 
         <p
           className="
-            mt-2
+            mx-auto
+            mt-4
+            max-w-md
             text-sm
-            text-pink-950/50
+            leading-7
+            text-pink-950/55
+            md:text-base
           "
         >
-          Three moments, one little story.
+          One set of photos,
+          two ways to keep them.
         </p>
       </div>
 
-      {/* =====================================================
-          FINAL IMAGE
-      ====================================================== */}
-
-      <div
-        className="
-          overflow-hidden
-          rounded-3xl
-          bg-white
-          shadow-[0_25px_80px_rgba(157,23,77,0.18)]
-        "
-      >
-        <img
-          src={result}
-          alt="Three little moments"
+      {/* Loading */}
+      {isGenerating && (
+        <div
           className="
-            block
-            h-auto
-            w-full
+            flex
+            min-h-[500px]
+            items-center
+            justify-center
           "
-        />
-      </div>
+        >
+          <div className="text-center">
+            <motion.div
+              animate={{
+                rotate: 360,
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "linear",
+              }}
+              className="
+                mx-auto
+                h-8
+                w-8
+                rounded-full
+                border
+                border-pink-300
+                border-t-pink-700
+              "
+            />
 
-      {/* =====================================================
-          CONTROLS
-      ====================================================== */}
+            <p
+              className="
+                mt-5
+                text-sm
+                text-pink-900/50
+              "
+            >
+              Creating your memories...
+            </p>
+          </div>
+        </div>
+      )}
 
-      <div className="mt-6 flex gap-3">
-        <button
-          onClick={onRetake}
+      {/* Error */}
+      {!isGenerating && error && (
+        <div
           className="
-            flex-1
-            rounded-full
+            mx-auto
+            mt-12
+            max-w-md
+            rounded-sm
             border
-            border-pink-900/15
-            px-5
-            py-3
-            text-sm
-            text-pink-900
-            transition
-            hover:bg-pink-50
-            active:scale-95
+            border-pink-900/10
+            bg-white/70
+            px-6
+            py-8
+            text-center
           "
         >
-          Retake
-        </button>
+          <p
+            className="
+              text-sm
+              leading-7
+              text-pink-950/60
+            "
+          >
+            {error}
+          </p>
 
-        <button
-          onClick={handleShare}
-          className="
-            flex-1
-            rounded-full
-            bg-pink-900
-            px-5
-            py-3
-            text-sm
-            font-medium
-            text-white
-            transition
-            hover:bg-pink-800
-            active:scale-95
-          "
-        >
-          Share ♡
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={onRetake}
+            className="
+              mt-6
+              rounded-full
+              border
+              border-pink-900/15
+              px-6
+              py-3
+              text-xs
+              uppercase
+              tracking-[0.2em]
+              text-pink-900
+              transition
+              hover:bg-pink-50
+            "
+          >
+            Try again
+          </button>
+        </div>
+      )}
 
-      {/* Close */}
-      <button
-        onClick={onClose}
-        aria-label="Close photo result"
-        className="
-          absolute
-          right-0
-          top-0
-          flex
-          h-10
-          w-10
-          items-center
-          justify-center
-          rounded-full
-          border
-          border-pink-900/10
-          bg-white
-          text-xl
-          font-light
-          text-pink-900
-          shadow-sm
-          transition
-          active:scale-90
-        "
-      >
-        ×
-      </button>
-    </m.div>
+      {/* Results */}
+      {!isGenerating &&
+        !error &&
+        photobooth &&
+        story && (
+          <div className="mt-12">
+            <div
+              className="
+                grid
+                gap-10
+                lg:grid-cols-2
+                lg:items-start
+              "
+            >
+              {/* =========================
+                  ORIGINAL PHOTOBOOTH
+              ========================== */}
+              <motion.div
+                initial={{
+                  opacity: 0,
+                  y: 25,
+                }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                }}
+                transition={{
+                  delay: 0.1,
+                  duration: 0.8,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+              >
+                <div className="text-center">
+                  <p
+                    className="
+                      text-[10px]
+                      uppercase
+                      tracking-[0.3em]
+                      text-pink-900/40
+                    "
+                  >
+                    Original
+                  </p>
+
+                  <h3
+                    className="
+                      mt-2
+                      font-serif
+                      text-2xl
+                      text-pink-950
+                    "
+                  >
+                    Photobooth Strip
+                  </h3>
+
+                  <p
+                    className="
+                      mt-2
+                      text-sm
+                      text-pink-950/45
+                    "
+                  >
+                    The full memory
+                  </p>
+                </div>
+
+                <div
+                  className="
+                    mx-auto
+                    mt-7
+                    w-full
+                    max-w-[420px]
+                  "
+                >
+                  <div
+                    className="
+                      overflow-hidden
+                      rounded-sm
+                      bg-white
+                      shadow-[0_30px_80px_rgba(120,60,90,0.14)]
+                    "
+                  >
+                    <img
+                      src={photobooth}
+                      alt="Original photobooth strip"
+                      className="
+                        block
+                        h-auto
+                        w-full
+                      "
+                    />
+                  </div>
+                </div>
+
+                <div
+                  className="
+                    mt-6
+                    flex
+                    justify-center
+                    gap-3
+                  "
+                >
+                  <button
+                    type="button"
+                    onClick={() =>
+                      shareImage(
+                        photobooth,
+                        "three-little-moments.jpg",
+                        "Three Little Moments",
+                      )
+                    }
+                    className="
+                      rounded-full
+                      bg-pink-900
+                      px-6
+                      py-3
+                      text-[10px]
+                      uppercase
+                      tracking-[0.18em]
+                      text-white
+                      transition
+                      hover:bg-pink-950
+                    "
+                  >
+                    {sharingType === "photobooth"
+                      ? "Opening..."
+                      : "Share"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      downloadImage(
+                        photobooth,
+                        "three-little-moments.jpg",
+                      )
+                    }
+                    className="
+                      rounded-full
+                      border
+                      border-pink-900/15
+                      bg-white/70
+                      px-6
+                      py-3
+                      text-[10px]
+                      uppercase
+                      tracking-[0.18em]
+                      text-pink-900
+                      transition
+                      hover:bg-pink-50
+                    "
+                  >
+                    Download
+                  </button>
+                </div>
+              </motion.div>
+
+              {/* =========================
+                  INSTAGRAM STORY
+              ========================== */}
+              <motion.div
+                initial={{
+                  opacity: 0,
+                  y: 25,
+                }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                }}
+                transition={{
+                  delay: 0.2,
+                  duration: 0.8,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+              >
+                <div className="text-center">
+                  <p
+                    className="
+                      text-[10px]
+                      uppercase
+                      tracking-[0.3em]
+                      text-pink-900/40
+                    "
+                  >
+                    Instagram
+                  </p>
+
+                  <h3
+                    className="
+                      mt-2
+                      font-serif
+                      text-2xl
+                      text-pink-950
+                    "
+                  >
+                    Story
+                  </h3>
+
+                  <p
+                    className="
+                      mt-2
+                      text-sm
+                      text-pink-950/45
+                    "
+                  >
+                    Ready for 9:16
+                  </p>
+                </div>
+
+                <div
+                  className="
+                    mx-auto
+                    mt-7
+                    w-full
+                    max-w-[360px]
+                  "
+                >
+                  <div
+                    className="
+                      overflow-hidden
+                      rounded-sm
+                      bg-white
+                      shadow-[0_30px_80px_rgba(120,60,90,0.14)]
+                    "
+                  >
+                    <img
+                      src={story}
+                      alt="Instagram Story version"
+                      className="
+                        block
+                        h-auto
+                        w-full
+                      "
+                    />
+                  </div>
+                </div>
+
+                <div
+                  className="
+                    mt-6
+                    flex
+                    justify-center
+                    gap-3
+                  "
+                >
+                  <button
+                    type="button"
+                    onClick={() =>
+                      shareImage(
+                        story,
+                        "three-little-moments-story.jpg",
+                        "Three Little Moments — Story",
+                      )
+                    }
+                    className="
+                      rounded-full
+                      bg-pink-900
+                      px-6
+                      py-3
+                      text-[10px]
+                      uppercase
+                      tracking-[0.18em]
+                      text-white
+                      transition
+                      hover:bg-pink-950
+                    "
+                  >
+                    {sharingType === "story"
+                      ? "Opening..."
+                      : "Share"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      downloadImage(
+                        story,
+                        "three-little-moments-story.jpg",
+                      )
+                    }
+                    className="
+                      rounded-full
+                      border
+                      border-pink-900/15
+                      bg-white/70
+                      px-6
+                      py-3
+                      text-[10px]
+                      uppercase
+                      tracking-[0.18em]
+                      text-pink-900
+                      transition
+                      hover:bg-pink-50
+                    "
+                  >
+                    Download
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Bottom actions */}
+            <div
+              className="
+                mt-16
+                text-center
+              "
+            >
+              <button
+                type="button"
+                onClick={onRetake}
+                className="
+                  text-xs
+                  uppercase
+                  tracking-[0.2em]
+                  text-pink-900/40
+                  transition
+                  hover:text-pink-900
+                "
+              >
+                Take them again
+              </button>
+
+              <div className="mt-5">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="
+                    text-xs
+                    tracking-[0.15em]
+                    text-pink-900/25
+                    transition
+                    hover:text-pink-900/60
+                  "
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+    </motion.div>
   )
 }

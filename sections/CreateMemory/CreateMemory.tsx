@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { AnimatePresence } from "framer-motion"
-
 import PhotoBooth from "./PhotoBooth"
 import PhotoResult from "./PhotoResult"
 
@@ -46,7 +45,7 @@ export default function CreateAMemory() {
         md:py-48
       "
     >
-      {/* Background glow */}
+      {/* Background decoration */}
       <div
         className="
           pointer-events-none
@@ -144,7 +143,7 @@ export default function CreateAMemory() {
       )}
 
       {/* =====================================================
-          CAMERA / RESULT
+          CAMERA
       ====================================================== */}
 
       <AnimatePresence mode="wait">
