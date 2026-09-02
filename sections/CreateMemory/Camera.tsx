@@ -61,42 +61,77 @@ const stream = await navigator.mediaDevices.getUserMedia({
     }
   }, [])
 
-  const capturePhoto = () => {
-    const video = videoRef.current
+ const capturePhoto = () => {
+  const video = videoRef.current
 
-    if (!video) return
+  if (!video || !video.videoWidth || !video.videoHeight) return
 
- const canvas = document.createElement("canvas")
+  const sourceWidth = video.videoWidth
+  const sourceHeight = video.videoHeight
 
-const width = video.videoWidth
-const height = video.videoHeight
+  // Target portrait 9:16
+  const targetRatio = 9 / 16
+  const sourceRatio = sourceWidth / sourceHeight
 
-canvas.width = width
-canvas.height = height
+  let cropX = 0
+  let cropY = 0
+  let cropWidth = sourceWidth
+  let cropHeight = sourceHeight
 
-const ctx = canvas.getContext("2d")
+  /*
+   * Samakan crop dengan object-cover
+   *
+   * Kalau source lebih lebar dari 9:16:
+   * → potong sisi kiri & kanan.
+   *
+   * Kalau source lebih tinggi dari 9:16:
+   * → potong atas & bawah.
+   */
+  if (sourceRatio > targetRatio) {
+    cropWidth = sourceHeight * targetRatio
+    cropX = (sourceWidth - cropWidth) / 2
+  } else {
+    cropHeight = sourceWidth / targetRatio
+    cropY = (sourceHeight - cropHeight) / 2
+  }
 
-if (!ctx) return
+  // Output final: 1080 × 1920
+  const outputWidth = 1080
+  const outputHeight = 1920
 
-ctx.save()
+  const canvas = document.createElement("canvas")
 
-// Mirror selfie
-ctx.translate(width, 0)
-ctx.scale(-1, 1)
+  canvas.width = outputWidth
+  canvas.height = outputHeight
 
-ctx.drawImage(
-  video,
-  0,
-  0,
-  width,
-  height
-)
+  const ctx = canvas.getContext("2d")
 
-ctx.restore()
+  if (!ctx) return
 
-const image = canvas.toDataURL("image/jpeg", 0.9)
+  ctx.save()
 
-onCapture(image)
+  // Mirror selfie agar hasil sama seperti preview
+  ctx.translate(outputWidth, 0)
+  ctx.scale(-1, 1)
+
+  ctx.drawImage(
+    video,
+    cropX,
+    cropY,
+    cropWidth,
+    cropHeight,
+    0,
+    0,
+    outputWidth,
+    outputHeight
+  )
+
+  ctx.restore()
+
+  const image = canvas.toDataURL("image/jpeg", 0.9)
+
+  onCapture(image)
+
   }
 
   if (error) {
