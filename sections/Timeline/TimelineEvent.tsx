@@ -1,8 +1,9 @@
 "use client"
 
 import Image from "next/image"
-import { motion } from "framer-motion"
-import type { TimelineEvent as TimelineEventType } from "./timeline"
+import type { TimelineEvent as TimelineEventType } from "./timeline.data"
+import { motion, useInView } from "framer-motion"
+import { useRef } from "react"
 
 interface TimelineEventProps {
   event: TimelineEventType
@@ -13,18 +14,17 @@ export default function TimelineEvent({
   event,
   index,
 }: TimelineEventProps) {
+  const imageRef = useRef<HTMLDivElement>(null)
+
+  const imageInView = useInView(imageRef, {
+    once: true,
+    margin: "-30% 0px -40% 0px",
+  })
+
   const isEven = index % 2 === 0
 
   return (
-    <motion.article
-      initial="hidden"
-      whileInView="visible"
-      viewport={{
-        once: true,
-        amount: 0.35,
-      }}
-      className="relative"
-    >
+    <article className="relative">
       <div
         className={`
           grid
@@ -34,47 +34,40 @@ export default function TimelineEvent({
           ${isEven ? "" : "md:[&>div:first-child]:order-2"}
         `}
       >
-
         {/* ================================= */}
         {/* IMAGE */}
         {/* ================================= */}
 
-        <motion.div
-          variants={{
-            hidden: {
-              opacity: 0,
-              rotateX: 90,
-              y: 30,
-            },
-
-            visible: {
-              opacity: 1,
-              rotateX: 0,
-              y: 0,
-              transition: {
-                duration: 1.1,
-                ease: [0.22, 1, 0.36, 1],
-              },
-            },
-          }}
-          style={{
-            perspective: 1200,
-          }}
+        <div
+          ref={imageRef}
           className="relative pl-10 md:pl-0"
         >
           <motion.div
             initial={{
-              x: 0,
+              opacity: 0,
+              rotateX: 90,
+              y: 30,
             }}
-            variants={{
-              visible: {
-                x: isEven ? 0 : 0,
-                transition: {
-                  delay: 0.65,
-                  duration: 0.8,
-                  ease: [0.22, 1, 0.36, 1],
-                },
-              },
+            animate={
+              imageInView
+                ? {
+                    opacity: 1,
+                    rotateX: 0,
+                    y: 0,
+                  }
+                : {
+                    opacity: 0,
+                    rotateX: 90,
+                    y: 30,
+                  }
+            }
+            transition={{
+              duration: 2.4,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+            style={{
+              perspective: 1200,
+              transformOrigin: "top center",
             }}
             className="
               relative
@@ -96,15 +89,10 @@ export default function TimelineEvent({
                 (max-width: 768px) 90vw,
                 45vw
               "
-              className="
-                object-cover
-                transition-transform
-                duration-1000
-                ease-out
-              "
+              className="object-cover"
             />
 
-            {/* soft overlay */}
+            {/* Soft overlay */}
 
             <div
               className="
@@ -118,30 +106,32 @@ export default function TimelineEvent({
               "
             />
           </motion.div>
-        </motion.div>
-
+        </div>
 
         {/* ================================= */}
         {/* STORY */}
         {/* ================================= */}
 
         <motion.div
-          variants={{
-            hidden: {
-              opacity: 0,
-              x: isEven ? 35 : -35,
-            },
-
-            visible: {
-              opacity: 1,
-              x: 0,
-
-              transition: {
-                delay: 0.65,
-                duration: 0.9,
-                ease: [0.22, 1, 0.36, 1],
-              },
-            },
+          initial={{
+            opacity: 0,
+            x: isEven ? 35 : -35,
+          }}
+          animate={
+            imageInView
+              ? {
+                  opacity: 1,
+                  x: 0,
+                }
+              : {
+                  opacity: 0,
+                  x: isEven ? 35 : -35,
+                }
+          }
+          transition={{
+            delay: imageInView ? 0.55 : 0,
+            duration: 0.9,
+            ease: [0.22, 1, 0.36, 1],
           }}
           className="
             mt-8
@@ -150,7 +140,6 @@ export default function TimelineEvent({
             md:pl-0
           "
         >
-
           {/* DATE */}
 
           <span
@@ -164,7 +153,6 @@ export default function TimelineEvent({
           >
             {event.date}
           </span>
-
 
           {/* TITLE */}
 
@@ -182,7 +170,6 @@ export default function TimelineEvent({
             {event.title}
           </h3>
 
-
           {/* DIVIDER */}
 
           <div
@@ -193,7 +180,6 @@ export default function TimelineEvent({
               bg-pink-300/60
             "
           />
-
 
           {/* DESCRIPTION */}
 
@@ -209,11 +195,8 @@ export default function TimelineEvent({
           >
             {event.description}
           </p>
-
         </motion.div>
-
       </div>
-
 
       {/* ================================= */}
       {/* TIMELINE DOT */}
@@ -237,7 +220,6 @@ export default function TimelineEvent({
           md:top-1/2
         "
       />
-
-    </motion.article>
+    </article>
   )
 }
