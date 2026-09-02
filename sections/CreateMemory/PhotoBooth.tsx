@@ -162,6 +162,21 @@ export default function PhotoBooth({
       streamRef.current = null
     }
   }, [])
+  useEffect(() => {
+  const video = videoRef.current
+  const stream = streamRef.current
+
+  if (!video || !stream) return
+
+  video.srcObject = stream
+
+  video.play().catch((error) => {
+    console.warn(
+      "Unable to resume camera preview:",
+      error
+    )
+  })
+}, [photos.length])
 
   /*
    * ==========================================================
