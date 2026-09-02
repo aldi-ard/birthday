@@ -21,12 +21,7 @@ export default function PhotoPreview({
       animate={{ opacity: 1, scale: 1 }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-pink-950/90 p-5"
     >
-      <div className="w-full max-w-md     relative
-    aspect-[9/16]
-    w-full
-    max-w-sm
-    overflow-hidden
-    rounded-2xl">
+      <div className="w-full max-w-md ">
         {/* Story frame */}
         <div className="relative aspect-[9/16] overflow-hidden rounded-3xl bg-white shadow-2xl">
           
