@@ -69,35 +69,59 @@ export default function Camera({
 
     if (!video) return
 
-    const canvas = document.createElement("canvas")
+   const canvas = document.createElement("canvas")
 
-    const width = video.videoWidth
-    const height = video.videoHeight
+const targetWidth = 1080
+const targetHeight = 1920
 
-    canvas.width = width
-    canvas.height = height
+canvas.width = targetWidth
+canvas.height = targetHeight
 
-    const context = canvas.getContext("2d")
+const ctx = canvas.getContext("2d")
 
-    if (!context) return
+if (!ctx) return
 
-    context.translate(width, 0)
-    context.scale(-1, 1)
+ctx.save()
 
-    context.drawImage(
-      video,
-      0,
-      0,
-      width,
-      height
-    )
+// Mirror selfie
+ctx.translate(targetWidth, 0)
+ctx.scale(-1, 1)
 
-    const image = canvas.toDataURL(
-      "image/jpeg",
-      0.92
-    )
+const videoRatio = video.videoWidth / video.videoHeight
+const targetRatio = targetWidth / targetHeight
 
-    onCapture(image)
+let sourceWidth = video.videoWidth
+let sourceHeight = video.videoHeight
+let sourceX = 0
+let sourceY = 0
+
+if (videoRatio > targetRatio) {
+  // Video terlalu lebar → crop kiri/kanan
+  sourceWidth = video.videoHeight * targetRatio
+  sourceX = (video.videoWidth - sourceWidth) / 2
+} else {
+  // Video terlalu tinggi → crop atas/bawah
+  sourceHeight = video.videoWidth / targetRatio
+  sourceY = (video.videoHeight - sourceHeight) / 2
+}
+
+ctx.drawImage(
+  video,
+  sourceX,
+  sourceY,
+  sourceWidth,
+  sourceHeight,
+  0,
+  0,
+  targetWidth,
+  targetHeight
+)
+
+ctx.restore()
+
+const image = canvas.toDataURL("image/jpeg", 0.9)
+
+onCapture(image)
   }
 
   if (error) {
@@ -126,7 +150,7 @@ export default function Camera({
     >
       <div className="relative w-full max-w-md overflow-hidden rounded-3xl bg-black shadow-2xl">
         {/* Camera */}
-        <div className="relative aspect-[9/16] overflow-hidden">
+        <div className="relative aspect-9/16 overflow-hidden">
           <video
             ref={videoRef}
             autoPlay
