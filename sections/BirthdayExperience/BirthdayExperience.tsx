@@ -5,12 +5,13 @@ import { useState } from "react"
 import IntroGate from "@/sections/IntroGate/IntroGate"
 import Transition from "@/sections/Transition/Transition"
 import Hero from "@/sections/Hero/Hero"
-import Memories from "@/sections/Memories/Memories"
 import SakuraParticles from "@/sections/Transition/SakuraParticles"
 import Letter from "@/sections/Letter/Letter"
 import Countdown from "@/sections/Countdown/Countdown"
 import Finale from "../Finale/Finale";
 import VoiceNote from "../VoiceNote/VoiceNote";
+import CreateAMemory from "../CreateMemory/CreateAMemory";
+import Timeline from "../Timeline/Timeline";
 
 type Scene = "intro" | "hero"
 
@@ -46,11 +47,12 @@ export default function BirthdayExperience() {
       {scene === "hero" && (
         <>
           <Hero />
-          <Memories />
+          <Timeline/>
           <Letter />
           <VoiceNote/>
           <Countdown />
-          <Finale/>
+          <Finale />
+          <CreateAMemory/>
         </>
       )}
 

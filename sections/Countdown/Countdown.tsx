@@ -17,7 +17,7 @@ interface TimeLeft {
 
 function Countdown() {
   const birthday = new Date(
-    "2026-08-31T01:38:00"
+    "2026-09-05T01:38:00"
   ).getTime()
 
   const calculateTimeLeft = (): TimeLeft | null => {
@@ -136,26 +136,24 @@ function Countdown() {
           <m.div
             initial={{
               opacity: 0,
-              scale: 0.9,
             }}
             animate={{
               opacity: 1,
-              scale: 1,
             }}
-            className="mt-12"
+            className="
+              mt-14
+              text-center
+            "
           >
             <p
               className="
-                text-4xl
-                md:text-6xl
-                text-pink-700
+                text-sm
+                uppercase
+                tracking-[0.3em]
+                text-pink-900/50
               "
-              style={{
-                fontFamily:
-                  tangerine.style.fontFamily,
-              }}
             >
-              Today is your day 🎂
+              The wait is over
             </p>
           </m.div>
         ) : (
@@ -167,7 +165,7 @@ function Countdown() {
               gap-4
               md:grid-cols-4
             "
-          >
+            >
             <TimeUnit
               value={timeLeft.days}
               label="Days"
@@ -186,8 +184,10 @@ function Countdown() {
             <TimeUnit
               value={timeLeft.seconds}
               label="Seconds"
-            />
+              />
+            
           </div>
+          
         )}
       </m.div>
     </section>

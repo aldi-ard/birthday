@@ -192,6 +192,30 @@ function Finale() {
           and countless reasons to smile.
         </m.p>
 
+        <m.p
+          initial={{
+            opacity: 0,
+          }}
+          whileInView={{
+            opacity: 1,
+          }}
+          viewport={{
+            once: true,
+          }}
+          transition={{
+            duration: 1,
+            delay: 1.6,
+          }}
+          className="
+            mt-16
+            text-xs
+            uppercase
+            tracking-[0.3em]
+            text-pink-900/40
+          "
+        >
+          Made with love
+        </m.p>
       </div>
     </section>
   )

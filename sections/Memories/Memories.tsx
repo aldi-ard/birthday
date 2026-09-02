@@ -2,118 +2,87 @@
 
 import { motion as m } from "framer-motion"
 
-import {
-  yellowtail,
-  tangerine,
-} from "@/themes/sakura/font"
+import MangaChapter from "./MangaChapter"
+import { memoryChapters } from "./memories.data"
 
-import MemoryCard from "./MemoryCard"
-import { memories } from "./memories.data"
-
-function Memories() {
+export default function Memories() {
   return (
-    <section
-      className="
-        relative
-        w-full
-        overflow-hidden
-        px-6
-        py-32
-      "
-    >
+    <section className="relative overflow-hidden bg-[#fffafc] px-6 py-32 md:py-48">
 
-      {/* Intro */}
+      {/* Background decoration */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -left-32 top-40 h-72 w-72 rounded-full bg-pink-100/40 blur-3xl" />
 
-      <m.div
-        initial={{
-          opacity: 0,
-          y: 50,
-        }}
-        whileInView={{
-          opacity: 1,
-          y: 0,
-        }}
-        viewport={{
-          once: true,
-          amount: 0.3,
-        }}
-        transition={{
-          duration: 1,
-          ease: "easeOut",
-        }}
-        className="
-          mx-auto
-          max-w-3xl
-          text-center
-        "
-      >
-        <p
-          className="
-            text-2xl
-            text-pink-800
-          "
-          style={{
-            fontFamily:
-              yellowtail.style.fontFamily,
-          }}
-        >
-          Our little memories
-        </p>
-
-        <h2
-          className="
-            mt-2
-            text-6xl
-            md:text-8xl
-            text-pink-700
-          "
-          style={{
-            fontFamily:
-              tangerine.style.fontFamily,
-          }}
-        >
-          Moments to remember
-        </h2>
-
-        <p
-          className="
-            mx-auto
-            mt-6
-            max-w-xl
-            text-sm
-            leading-7
-            text-pink-900/70
-          "
-        >
-          Every moment has its own little story.
-          Some are ordinary, some are unforgettable,
-          but all of them are worth remembering.
-        </p>
-      </m.div>
-
-
-      {/* Memories */}
-
-<div
-  className="
-    mt-24
-    md:mt-32
-    space-y-28
-    md:space-y-40
-  "
->
-{memories.map((memory, index) => (
-  <MemoryCard
-    key={memory.id}
-    memory={memory}
-    index={index}
-  />
-))}
-
+        <div className="absolute -right-32 top-[45%] h-96 w-96 rounded-full bg-rose-100/30 blur-3xl" />
       </div>
 
+      {/* Intro */}
+      <div className="relative mx-auto mb-32 max-w-2xl text-center md:mb-48">
+        <m.p
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="text-xs uppercase tracking-[0.4em] text-pink-950/40"
+        >
+          Memories
+        </m.p>
+
+        <m.h2
+          initial={{ opacity: 0, y: 25 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{
+            duration: 1,
+            delay: 0.1,
+          }}
+          className="mt-4 font-serif text-5xl text-pink-900 md:text-7xl"
+        >
+          Our little story
+        </m.h2>
+
+        <m.p
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{
+            duration: 1,
+            delay: 0.4,
+          }}
+          className="mx-auto mt-6 max-w-md text-sm leading-7 text-pink-950/50"
+        >
+          A collection of little moments that became
+          something worth remembering.
+        </m.p>
+      </div>
+
+      {/* Chapters */}
+      <div className="relative mx-auto max-w-5xl">
+        <div className="space-y-48 md:space-y-72">
+          {memoryChapters.map((chapter, index) => (
+            <MangaChapter
+              key={chapter.number}
+              chapter={chapter}
+              chapterIndex={index}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Ending */}
+      <m.div
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 1 }}
+        className="relative mt-48 text-center"
+      >
+        <div className="mx-auto h-px w-16 bg-pink-300/60" />
+
+        <p className="mt-8 font-serif text-xl italic text-pink-900/70">
+          And the story continues...
+        </p>
+      </m.div>
     </section>
   )
 }
-
-export default Memories

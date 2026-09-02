@@ -1,0 +1,3 @@
+optimasi gambar
+introgate
+            
