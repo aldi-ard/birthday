@@ -860,7 +860,7 @@ export async function generateStory(
   }
 
   const {
-    name = "Dea Chintya",
+    name = "your girl",
     date = "02 September 2026",
   } = options
 
