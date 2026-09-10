@@ -57,7 +57,7 @@ function IntroGate({ onEnter }: IntroGateProps) {
             fontWeight: yellowtail.style.fontWeight,
           }}
         >
-          Dea Chintya
+          your girl
         </m.h2>
 
         <Button variant="pink" onClick={onEnter}>

@@ -148,7 +148,7 @@ function Hero() {
         text-pink-700
       "
           >
-            Dea Chintya
+            Devy Rahmawati
           </m.h1>
         </m.div>
 
