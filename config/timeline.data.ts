@@ -22,7 +22,7 @@ export const timelineEvents: TimelineEvent[] = [
     title: "Getting Closer",
     description:
       "Entah sejak kapan, ngobrol sama kamu mulai terasa berbeda. Dari yang awalnya biasa saja, perlahan jadi sesuatu yang selalu ditunggu.",
-    image: "/timeline/memory-01.webp",
+    image: "/timeline/memory-02.webp",
   },
 
   {
@@ -40,7 +40,7 @@ export const timelineEvents: TimelineEvent[] = [
     title: "Late to School",
     description:
       "Salah satu momen paling random yang pernah kita lewati. Kita memang telat, tapi setidaknya telatnya bareng.",
-    image: "/timeline/memory-01.webp",
+    image: "/timeline/memory-03.webp",
   },
 
   {
@@ -49,15 +49,15 @@ export const timelineEvents: TimelineEvent[] = [
     title: "Our First Photo",
     description:
       "Sebuah foto sederhana. Tapi ternyata menjadi salah satu halaman kecil yang masih ingin aku simpan sampai sekarang.",
-    image: "/timeline/memory-01.webp",
+    image: "/timeline/memory-04.mp4",
   },
 
-  {
-    id: 6,
-    date: "15 December 2023",
-    title: "The Beginning of Us",
-    description:
-      "Dan akhirnya, cerita kita benar-benar dimulai.",
-    image: "/timeline/memory-01.webp",
-  },
+  // {
+  //   id: 6,
+  //   date: "15 December 2023",
+  //   title: "The Beginning of Us",
+  //   description:
+  //     "Dan akhirnya, cerita kita benar-benar dimulai.",
+  //   image: "/timeline/memory-01.webp",
+  // },
 ]
