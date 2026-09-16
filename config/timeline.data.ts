@@ -43,14 +43,14 @@ export const timelineEvents: TimelineEvent[] = [
     image: "/timeline/memory-03.webp",
   },
 
-  {
-    id: 5,
-    date: "20 November 2023",
-    title: "Our First Photo",
-    description:
-      "Sebuah foto sederhana. Tapi ternyata menjadi salah satu halaman kecil yang masih ingin aku simpan sampai sekarang.",
-    image: "/timeline/memory-04.mp4",
-  },
+  // {
+  //   id: 5,
+  //   date: "20 November 2023",
+  //   title: "Our First Photo",
+  //   description:
+  //     "Sebuah foto sederhana. Tapi ternyata menjadi salah satu halaman kecil yang masih ingin aku simpan sampai sekarang.",
+  //   image: "/timeline/memory-04.mp4",
+  // },
 
   // {
   //   id: 6,
