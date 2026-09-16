@@ -5,6 +5,7 @@ import { motion } from "framer-motion"
 
 import { generatePhotobooth } from "./GeneratePhotobooth"
 import { generateStory } from "./GenerateStory"
+import { birthdayConfig } from "@/config/birthday";
 
 interface PhotoResultProps {
   photos: string[]
@@ -45,12 +46,12 @@ export default function PhotoResult({
           storyResult,
         ] = await Promise.all([
           generatePhotobooth(photos, {
-            name: "Dea Chintya",
-            date: "02 September 2026",
+            name: birthdayConfig.person.nickname,
+            date: birthdayConfig.birthday.date,
           }),
           generateStory(photos, {
-            name: "Dea Chintya",
-            date: "02 September 2026",
+            name: birthdayConfig.person.nickname,
+            date: birthdayConfig.birthday.date,
           }),
         ])
 

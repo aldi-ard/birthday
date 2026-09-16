@@ -5,6 +5,7 @@ import { easeOut, motion as m } from "framer-motion"
 import Background from "@/sections/IntroGate/Background"
 import { yellowtail, tangerine } from "@/themes/sakura/font"
 import { Button } from "@/components/ui/button"
+import { birthdayConfig } from "@/config/birthday"
 
 interface IntroGateProps {
   onEnter: () => void
@@ -57,7 +58,7 @@ function IntroGate({ onEnter }: IntroGateProps) {
             fontWeight: yellowtail.style.fontWeight,
           }}
         >
-          your girl
+          { birthdayConfig.person.name }
         </m.h2>
 
         <Button variant="pink" onClick={onEnter}>

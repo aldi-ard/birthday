@@ -6,6 +6,7 @@ import {
   yellowtail,
   tangerine,
 } from "@/themes/sakura/font"
+import { birthdayConfig } from "@/config/birthday";
 
 function Finale() {
   return (
@@ -126,7 +127,7 @@ function Finale() {
             md:text-4xl
           "
         >
-          Dea Chintya
+          { birthdayConfig.person.name }
         </m.p>
 
 

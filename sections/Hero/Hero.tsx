@@ -2,6 +2,7 @@
 
 import HeroBackground from "./HeroBackground"
 import HeroDecoration from "./HeroDecoration"
+import { birthdayConfig } from '@/config/birthday'
 import { motion as m, useScroll, useTransform } from "framer-motion"
 import { useRef } from "react"
 import {
@@ -148,7 +149,7 @@ function Hero() {
         text-pink-700
       "
           >
-            Devy Rahmawati
+            {birthdayConfig.person.name}
           </m.h1>
         </m.div>
 

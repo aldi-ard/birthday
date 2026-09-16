@@ -2,7 +2,7 @@
 
 import TimelineEvent from "./TimelineEvent"
 import TimelineLine from "./TimelineLine"
-import { timelineEvents } from "./timeline.data"
+import { timelineEvents } from "@/config/timeline.data"
 
 export default function Timeline() {
   return (

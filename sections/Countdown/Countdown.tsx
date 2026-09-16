@@ -7,6 +7,7 @@ import {
   yellowtail,
   tangerine,
 } from "@/themes/sakura/font"
+import { birthdayConfig } from "@/config/birthday";
 
 interface TimeLeft {
   days: number
@@ -17,7 +18,8 @@ interface TimeLeft {
 
 function Countdown() {
   const birthday = new Date(
-    "2026-09-05T01:38:00"
+    // "2026-09-05T01:38:00"
+    birthdayConfig.birthday.target
   ).getTime()
 
   const calculateTimeLeft = (): TimeLeft | null => {

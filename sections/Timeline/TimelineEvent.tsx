@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import type { TimelineEvent as TimelineEventType } from "./timeline.data"
+import type { TimelineEvent as TimelineEventType } from "@/config/timeline.data"
 import { motion, useInView } from "framer-motion"
 import { useRef } from "react"
 

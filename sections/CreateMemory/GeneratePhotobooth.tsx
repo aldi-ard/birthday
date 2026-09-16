@@ -1,3 +1,6 @@
+
+import { birthdayConfig } from "@/config/birthday";
+
 export interface GeneratePhotoboothOptions {
   name?: string
   date?: string
@@ -173,7 +176,7 @@ export async function generatePhotobooth(
   }
 
   const {
-    name = "Dea Chintya",
+    name = birthdayConfig.person.nickname ,
     date = "02 September 2026",
   } = options
 

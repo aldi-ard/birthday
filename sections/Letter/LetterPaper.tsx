@@ -1,6 +1,7 @@
 "use client"
 
 import { motion as m } from "framer-motion"
+import {  birthdayConfig } from "@/config/birthday"
 
 import {
   yellowtail,
@@ -46,7 +47,7 @@ function LetterPaper() {
           text-pink-950/80
         "
       >
-        Dear Dea,
+        Dear { birthdayConfig.person.nickname},
       </p>
 
       <p
